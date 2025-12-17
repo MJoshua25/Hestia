@@ -30,8 +30,7 @@
                 class="card-ios overflow-hidden hover:shadow-ios-lg transition-shadow group">
                 <div class="p-4">
                     <div class="flex justify-between items-start mb-3">
-                        <h3 class="font-bold text-lg text-ios-gray-900 group-hover:text-ios-blue transition-colors">{{
-                            event.title }}</h3>
+                        <h3 class="font-bold text-lg text-ios-gray-900 group-hover:text-ios-blue transition-colors">{{ event.title }}</h3>
                         <span class="badge-ios bg-ios-blue/10 text-ios-blue flex-shrink-0 ml-2">
                             {{ event.date|date:"d M" }}
                         </span>
@@ -51,8 +50,7 @@
                 </div>
                 <div
                     class="px-4 py-3 bg-ios-gray-50/50 border-t border-ios-gray-100 flex items-center justify-between text-sm">
-                    <span class="text-ios-gray-500">{{ event.commissions.count }} commission{{
-                        event.commissions.count|pluralize }}</span>
+                    <span class="text-ios-gray-500">{{ event.commissions.count }} commission{{ event.commissions.count|pluralize }}</span>
                     {% if event.date %}
                     <span class="text-ios-gray-400">{{ event.date|date:"H:i" }}</span>
                     {% endif %}

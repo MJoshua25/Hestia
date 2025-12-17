@@ -30,6 +30,9 @@ class HomeView(LoginRequiredMixin, TemplateView):
         elif member:
             # Member Dashboard
             # My commissions
-            context['my_commissions'] = member.commissions.filter(event__date__gte=now).select_related('event')
+            context['my_commissions'] = Commission.objects.filter(
+                assignments__member=member, 
+                event__date__gte=now
+            ).select_related('event')
             
         return context

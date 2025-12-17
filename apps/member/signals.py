@@ -28,6 +28,8 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
             phone_number=instance.phone_number,
             require_password_change=True
         )
+        # Set default pin code
+        user.set_pin("012345")
 
         
         # Link Member to User

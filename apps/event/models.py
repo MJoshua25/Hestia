@@ -65,6 +65,10 @@ class Commission(Standard_model):
             return False
         return self.current_count >= self.max_capacity
 
+    @property
+    def members(self):
+        return Member.objects.filter(assignments__commission=self)
+
 class Assignment(Standard_model):
     commission = models.ForeignKey(
         Commission, 

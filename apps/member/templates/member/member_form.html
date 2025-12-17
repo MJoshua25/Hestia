@@ -108,26 +108,31 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/imask"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const phoneInput = document.querySelector('input[name="phone_number"]');
+        const phoneInput = document.getElementById('id_phone_number');
         if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})/);
-                if (!x[2]) {
-                    e.target.value = x[1] ? '+' + x[1] : '';
-                } else {
-                    e.target.value = '+' + x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '') + (x[5] ? ' ' + x[5] : '') + (x[6] ? ' ' + x[6] : '');
-                }
+            const mask = IMask(phoneInput, {
+                mask: '+{225} 00 00 00 00 00',
+                lazy: false,
+                placeholderChar: '_'
             });
-            
-            // Initial format if value exists
-            if (phoneInput.value && !phoneInput.value.includes('+')) {
-                 // Assuming it's just numbers, try to format
-                 let x = phoneInput.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})/);
-                 if (x[2]) {
-                    phoneInput.value = '+' + x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '') + (x[5] ? ' ' + x[5] : '') + (x[6] ? ' ' + x[6] : '');
-                 }
+
+            // Ensure form submission uses the raw value if needed
+            const form = phoneInput.closest('form');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    // Get unmasked value from IMask
+                    const rawValue = mask.unmaskedValue;
+                    // Ensure it has + prefix if needed (IMask unmasked might strip it depending on config, 
+                    // but here we have fixed prefix in mask so unmasked usually doesn't include it unless 'lazy' config etc.
+                    // With mask '+{225}...', unmaskedValue is '225...'
+                    
+                    // We want to save '+225...' (no spaces).
+                    // Update the input value to the raw value just before submit
+                    phoneInput.value = '+' + rawValue;
+                });
             }
         }
     });

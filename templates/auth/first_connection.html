@@ -4,7 +4,7 @@
 {% block title %}Première Connexion - Hestia{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div id="first-connection-app" class="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8" v-cloak>
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Première Connexion 👋
@@ -15,14 +15,30 @@
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div v-if="errorMessage" class="mb-4 rounded-md bg-red-50 p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Erreur</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p>$[ errorMessage ]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white py-8 px-4 shadow-ios-xl rounded-ios-xl sm:px-10 border border-gray-100">
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-6" @submit="handleSubmit">
                 {% csrf_token %}
 
                 <div>
                     <label for="new_password" class="block text-sm font-medium text-gray-700">Nouveau mot de passe <span class="text-ios-red">*</span></label>
                     <div class="mt-1">
-                        <input id="new_password" name="new_password" type="password" required
+                        <input id="new_password" name="new_password" type="password" required v-model="password"
                             class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm"
                             placeholder="Minimum 8 caractères">
                     </div>
@@ -31,7 +47,7 @@
                 <div>
                     <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmer le mot de passe <span class="text-ios-red">*</span></label>
                     <div class="mt-1">
-                        <input id="confirm_password" name="confirm_password" type="password" required
+                        <input id="confirm_password" name="confirm_password" type="password" required v-model="confirmPassword"
                             class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm"
                             placeholder="Répéter le mot de passe">
                     </div>
@@ -44,7 +60,7 @@
                     <div class="mt-4">
                         <label for="pin_code" class="block text-sm font-medium text-gray-700">Code PIN</label>
                         <div class="mt-1">
-                            <input id="pin_code" name="pin_code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                            <input id="pin_code" name="pin_code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" v-model="pin"
                                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm tracking-widest text-center font-mono text-lg"
                                 placeholder="● ● ● ● ● ●">
                         </div>
@@ -61,4 +77,54 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['$[', ']'],
+        data() {
+            return {
+                password: '',
+                confirmPassword: '',
+                pin: '',
+                errorMessage: ''
+            }
+        },
+        methods: {
+            handleSubmit(e) {
+                this.errorMessage = '';
+                
+                // Password length validation
+                if (this.password.length < 8) {
+                    this.errorMessage = "Le mot de passe doit contenir au moins 8 caractères.";
+                    e.preventDefault();
+                    return;
+                }
+
+                // Password match validation
+                if (this.password !== this.confirmPassword) {
+                    this.errorMessage = "Les mots de passe ne correspondent pas.";
+                    e.preventDefault();
+                    return;
+                }
+
+                // PIN validation (if provided)
+                if (this.pin && this.pin.length !== 6) {
+                    this.errorMessage = "Le code PIN doit contenir exactement 6 chiffres.";
+                    e.preventDefault();
+                    return;
+                }
+                
+                if (this.pin && !/^\d+$/.test(this.pin)) {
+                     this.errorMessage = "Le code PIN doit contenir uniquement des chiffres.";
+                     e.preventDefault();
+                     return;
+                }
+            }
+        }
+    }).mount('#first-connection-app');
+</script>
 {% endblock %}

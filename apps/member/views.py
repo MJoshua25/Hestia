@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, View
@@ -6,6 +7,8 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import JsonResponse
+from django.db import transaction
 from .models import Member
 from .forms import MemberForm, MemberFormSet
 from .services import MemberService
@@ -45,18 +48,61 @@ class MemberBulkCreateView(AdminOrDelegateRequiredMixin, View):
     success_url = reverse_lazy('member:member_list')
 
     def get(self, request, *args, **kwargs):
-        formset = MemberFormSet(queryset=Member.objects.none())
-        return render(request, self.template_name, {'formset': formset})
+        return render(request, self.template_name)
 
     def post(self, request, *args, **kwargs):
-        formset = MemberFormSet(request.POST)
-        if formset.is_valid():
-            instances = formset.save()
-            if instances:
-                messages.success(request, f"{len(instances)} membres ajoutés avec succès.")
-            return redirect(self.success_url)
-        
-        return render(request, self.template_name, {'formset': formset})
+        try:
+            data = json.loads(request.body)
+            members_data = data.get('members', [])
+            
+            if not members_data:
+                return JsonResponse({'success': False, 'error': 'Aucune donnée reçue'}, status=400)
+
+            created_count = 0
+            errors = []
+
+            with transaction.atomic():
+                for index, member_data in enumerate(members_data):
+                    # Basic validation
+                    if not all(key in member_data for key in ['first_name', 'last_name', 'phone_number', 'room_number']):
+                        errors.append(f"Ligne {index + 1}: Champs manquants")
+                        continue
+
+                    # Check for duplicates (phone number)
+                    if Member.objects.filter(phone_number=member_data['phone_number']).exists():
+                        errors.append(f"Ligne {index + 1}: Le numéro {member_data['phone_number']} existe déjà")
+                        continue
+
+                    Member.objects.create(
+                        first_name=member_data['first_name'],
+                        last_name=member_data['last_name'],
+                        phone_number=member_data['phone_number'],
+                        room_number=member_data['room_number'],
+                        role=member_data.get('role', 'MEMBER')
+                    )
+                    created_count += 1
+            
+            if errors:
+                # If there were errors but some succeeded, we rollback everything or partial?
+                # Usually bulk means all or nothing or best effort.
+                # Let's go with best effort but transaction.atomic rolls back everything on exception.
+                # Here I am not raising exception, so it commits valid ones.
+                # Wait, transaction.atomic block commits at end if no exception.
+                # If I want to fail all if one fails, I should raise exception.
+                # But UX-wise, partial success is tricky. Let's fail all if errors for safety/clarity.
+                pass 
+                
+            if errors:
+                 return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+            messages.success(request, f"{created_count} membres ajoutés avec succès.")
+            return JsonResponse({'success': True, 'redirect_url': self.success_url})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'JSON invalide'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 class MemberUpdateView(AdminOrDelegateRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Member

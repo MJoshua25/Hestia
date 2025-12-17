@@ -28,7 +28,7 @@
                         {% if object %}Modifier la commission{% else %}Ajouter une commission{% endif %}
                     </h1>
                     <p class="text-sm text-ios-gray-500 mt-0.5">
-                        Pour : <strong>{{ event.title|default:object.event.title }}</strong>
+                        Pour : <strong>{% if event %}{{ event.title }}{% else %}{{ object.event.title }}{% endif %}</strong>
                     </p>
                 </div>
             </div>
