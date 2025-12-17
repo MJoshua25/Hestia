@@ -44,6 +44,13 @@ class Member(Standard_model):
         default=Role.MEMBER
     )
 
+    photo = models.ImageField(
+        _('Photo de profil'), 
+        upload_to='members/photos/', 
+        null=True, 
+        blank=True
+    )
+
     class Meta:
         verbose_name = _('Membre')
         verbose_name_plural = _('Membres')
@@ -59,3 +66,9 @@ class Member(Standard_model):
     @property
     def is_delegate(self):
         return self.role == self.Role.DELEGATE
+        
+    @property
+    def initials(self):
+        if self.first_name and self.last_name:
+            return f"{self.first_name[0]}{self.last_name[0]}".upper()
+        return "??"

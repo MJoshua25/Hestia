@@ -7,10 +7,15 @@ from .models import Member
 class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
-        fields = ['first_name', 'last_name', 'phone_number', 'room_number', 'role']
+        fields = ['photo', 'first_name', 'last_name', 'phone_number', 'room_number', 'role']
         widgets = {
             'role': forms.Select(attrs={
                 'class': 'input-ios w-full appearance-none bg-white pr-10'
+            }),
+            'photo': forms.FileInput(attrs={
+                'class': 'hidden',
+                'id': 'id_photo',
+                'accept': 'image/*'
             }),
         }
 
@@ -21,6 +26,9 @@ class MemberForm(forms.ModelForm):
         input_class = 'input-ios w-full'
         
         for field_name, field in self.fields.items():
+            if field_name == 'photo':
+                continue
+                
             if 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = input_class
             
@@ -41,6 +49,10 @@ class MemberForm(forms.ModelForm):
             elif field_name == 'room_number':
                 field.widget.attrs['placeholder'] = 'Ex: 101'
                 field.widget.attrs['inputmode'] = 'numeric'
+
+class ProfileForm(MemberForm):
+    class Meta(MemberForm.Meta):
+        fields = ['photo', 'first_name', 'last_name', 'phone_number', 'room_number']
 
 MemberFormSet = modelformset_factory(
     Member,

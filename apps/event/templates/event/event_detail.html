@@ -112,7 +112,11 @@
             <div
                 class="list-item-ios flex-col sm:flex-row items-start sm:items-center p-4 sm:p-5 hover:bg-ios-gray-50 transition-colors group">
                 <div class="flex-1 min-w-0">
-                    <h3 class="text-lg font-semibold text-ios-gray-900">{{ commission.name }}</h3>
+                    <h3 class="text-lg font-semibold text-ios-gray-900">
+                        <a href="{% url 'commission_detail' commission.pk %}" class="hover:text-ios-blue transition-colors">
+                            {{ commission.name }}
+                        </a>
+                    </h3>
                     {% if commission.description %}
                     <p class="text-ios-gray-500 text-sm mt-1">{{ commission.description }}</p>
                     {% endif %}

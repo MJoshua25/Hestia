@@ -31,6 +31,44 @@
                 }
             }
         });
+
+        // Initialize Quill
+        document.addEventListener('DOMContentLoaded', function() {
+            const editors = document.querySelectorAll('.quill-editor');
+            editors.forEach(textarea => {
+                // Create container for Quill
+                const container = document.createElement('div');
+                container.style.height = '150px';
+                container.className = 'bg-white rounded-ios border border-ios-gray-300 mb-4';
+                
+                // Insert container before textarea
+                textarea.parentNode.insertBefore(container, textarea);
+                
+                // Hide textarea
+                textarea.style.display = 'none';
+                
+                // Init Quill
+                const quill = new Quill(container, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                            ['link']
+                        ]
+                    },
+                    placeholder: textarea.getAttribute('placeholder') || ''
+                });
+                
+                // Set initial content
+                quill.root.innerHTML = textarea.value;
+                
+                // Sync content on form submit
+                textarea.form.addEventListener('submit', function() {
+                    textarea.value = quill.root.innerHTML;
+                });
+            });
+        });
     </script>
 {% endblock %}
 
@@ -78,23 +116,7 @@
                     {% endif %}
                 </label>
 
-                {% if field.name == 'description' %}
-                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="3"
-                    placeholder="Décrivez les responsabilités de cette commission..."
-                    class="input-ios w-full py-3 {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">{{ field.value|default:'' }}</textarea>
-                {% elif field.name == 'name' %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|default:'' }}" placeholder="Ex: Décoration, Cuisine, Animation..."
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% elif field.name == 'max_capacity' %}
-                <input type="number" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|default:'5' }}" min="1" inputmode="numeric"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% else %}
-                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
-                    id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% endif %}
+                {{ field }}
 
                 {% if field.help_text %}
                 <p class="mt-1.5 text-sm text-ios-gray-500">{{ field.help_text }}</p>
@@ -114,6 +136,7 @@
 
             <div
                 class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-6 border-t border-ios-gray-100">
+
                 <a href="{% if object %}{% url 'event_detail' object.event.pk %}{% else %}{% url 'event_detail' event.pk %}{% endif %}"
                     class="btn-secondary-ios w-full sm:w-auto justify-center btn-press">
                     Annuler

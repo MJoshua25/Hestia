@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, View
 from django.contrib.messages.views import SuccessMessageMixin
@@ -7,12 +7,15 @@ from django.contrib import messages
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db import transaction
 from .models import Member
-from .forms import MemberForm, MemberFormSet
+from .forms import MemberForm, MemberFormSet, ProfileForm
 from .services import MemberService
 from core.mixins import AdminOrDelegateRequiredMixin
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
 class MemberListView(LoginRequiredMixin, ListView):
     model = Member
@@ -21,7 +24,16 @@ class MemberListView(LoginRequiredMixin, ListView):
     paginate_by = 20
     
     def get_queryset(self):
-        queryset = super().get_queryset()
+        # Start with base queryset
+        queryset = Member.objects.all()
+        
+        # Filter by status (active by default)
+        status = self.request.GET.get('status', 'active')
+        if status == 'archived':
+            queryset = queryset.filter(statut=False)
+        else:
+            queryset = queryset.filter(statut=True)
+            
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(
@@ -30,6 +42,13 @@ class MemberListView(LoginRequiredMixin, ListView):
                 Q(room_number__icontains=query)
             )
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_count'] = Member.objects.filter(statut=True).count()
+        context['archived_count'] = Member.objects.filter(statut=False).count()
+        context['current_status'] = self.request.GET.get('status', 'active')
+        return context
 
 class MemberDetailView(LoginRequiredMixin, DetailView):
     model = Member
@@ -82,16 +101,6 @@ class MemberBulkCreateView(AdminOrDelegateRequiredMixin, View):
                     )
                     created_count += 1
             
-            if errors:
-                # If there were errors but some succeeded, we rollback everything or partial?
-                # Usually bulk means all or nothing or best effort.
-                # Let's go with best effort but transaction.atomic rolls back everything on exception.
-                # Here I am not raising exception, so it commits valid ones.
-                # Wait, transaction.atomic block commits at end if no exception.
-                # If I want to fail all if one fails, I should raise exception.
-                # But UX-wise, partial success is tricky. Let's fail all if errors for safety/clarity.
-                pass 
-                
             if errors:
                  return JsonResponse({'success': False, 'errors': errors}, status=400)
 
@@ -149,3 +158,157 @@ class MemberImportView(AdminOrDelegateRequiredMixin, FormView):
         except Exception as e:
             messages.error(request, f"Erreur lors de l'import: {str(e)}")
             return redirect('member:member_import')
+
+class ProfileView(LoginRequiredMixin, UpdateView):
+    model = Member
+    form_class = ProfileForm
+    template_name = 'member/profile.html'
+    success_url = reverse_lazy('member:profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user.member_profile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['password_form'] = PasswordChangeForm(self.request.user)
+        # Stats context
+        member = self.get_object()
+        from apps.event.models import Assignment, Commission
+        
+        events_count = Assignment.objects.filter(member=member).count()
+        commissions_count = Assignment.objects.filter(member=member).values('commission__event').distinct().count()
+        responsibilities_count = Commission.objects.filter(responsible=member).count()
+        last_participation = Assignment.objects.filter(member=member).order_by('-commission__event__date').first()
+        
+        context['stats'] = {
+            'events_count': events_count,
+            'commissions_count': commissions_count,
+            'responsibilities_count': responsibilities_count,
+            'last_participation': last_participation
+        }
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "Informations mises à jour avec succès")
+        return super().form_valid(form)
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Votre mot de passe a été mis à jour avec succès.')
+            return redirect('member:profile')
+        else:
+            messages.error(request, 'Veuillez corriger les erreurs ci-dessous.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+            return redirect('member:profile')
+    return redirect('member:profile')
+
+@login_required
+def manage_pin(request):
+    if request.method == 'POST':
+        pin = request.POST.get('pin')
+        confirm_pin = request.POST.get('confirm_pin')
+        current_password = request.POST.get('password')
+        
+        if not request.user.check_password(current_password):
+            return JsonResponse({'success': False, 'error': 'Mot de passe incorrect'})
+            
+        if pin != confirm_pin:
+             return JsonResponse({'success': False, 'error': 'Les codes PIN ne correspondent pas'})
+             
+        if not pin.isdigit() or len(pin) != 6:
+             return JsonResponse({'success': False, 'error': 'Le code PIN doit contenir 6 chiffres'})
+             
+        request.user.set_pin(pin)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Méthode non autorisée'})
+
+@login_required
+def delete_photo(request):
+    if request.method == 'POST':
+        member = request.user.member_profile
+        if member.photo:
+            member.photo.delete()
+            member.save()
+            messages.success(request, "Photo supprimée")
+        return redirect('member:profile')
+    return redirect('member:profile')
+
+@login_required
+def archive_member(request, pk):
+    if not request.user.member_profile.is_admin:
+        messages.error(request, "Action réservée aux administrateurs")
+        return redirect('member:member_list')
+        
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == 'POST':
+        # Deactivate user
+        if member.user:
+            member.user.is_active = False
+            member.user.save()
+            
+        # Soft delete member
+        member.statut = False
+        member.save()
+        
+        # Remove from future commissions
+        from django.utils import timezone
+        from apps.event.models import Assignment
+        
+        Assignment.objects.filter(
+            member=member,
+            commission__event__date__gte=timezone.now()
+        ).delete()
+        
+        messages.success(request, f"{member} archivé avec succès")
+        return redirect('member:member_list')
+    return redirect('member:member_list')
+
+@login_required
+def restore_member(request, pk):
+    if not request.user.member_profile.is_admin:
+        messages.error(request, "Action réservée aux administrateurs")
+        return redirect('member:member_list')
+        
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == 'POST':
+        # Reactivate user
+        if member.user:
+            member.user.is_active = True
+            member.user.save()
+            
+        # Restore member
+        member.statut = True
+        member.save()
+        
+        messages.success(request, f"{member} restauré avec succès")
+        return redirect('member:member_list')
+    return redirect('member:member_list')
+
+@login_required
+def delete_member_permanently(request, pk):
+    if not request.user.member_profile.is_admin:
+        messages.error(request, "Action réservée aux administrateurs")
+        return redirect('member:member_list')
+        
+    member = get_object_or_404(Member, pk=pk)
+    if request.method == 'POST':
+        if member.statut: # Should be archived first
+            messages.error(request, "Le membre doit être archivé avant suppression définitive")
+            return redirect('member:member_list')
+            
+        # Delete user
+        if member.user:
+            member.user.delete()
+        else:
+            member.delete()
+            
+        messages.success(request, f"{member} supprimé définitivement")
+        return redirect('member:member_list')
+    return redirect('member:member_list')

@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     EventListView, EventDetailView, EventCreateView, EventUpdateView, EventDeleteView,
-    CommissionCreateView, CommissionUpdateView, CommissionDeleteView,
+    CommissionCreateView, CommissionUpdateView, CommissionDeleteView, CommissionDetailView,
     CommissionManageView, CommissionDataAPI, AssignmentAutoAPI, AssignmentManualAPI,
     export_commissions_excel, export_commissions_pdf
 )
@@ -15,6 +15,7 @@ urlpatterns = [
     
     # Commissions
     path('<int:event_id>/commission/creer/', CommissionCreateView.as_view(), name='commission_create'),
+    path('commission/<int:pk>/', CommissionDetailView.as_view(), name='commission_detail'),
     path('commission/<int:pk>/modifier/', CommissionUpdateView.as_view(), name='commission_update'),
     path('commission/<int:pk>/supprimer/', CommissionDeleteView.as_view(), name='commission_delete'),
     

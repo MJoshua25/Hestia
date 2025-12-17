@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ commission.name }} - Hestia{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-ios-lg shadow-ios p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center space-x-2 text-sm text-gray-500 mb-1">
+                    <a href="{% url 'event_detail' commission.event.pk %}" class="hover:text-ios-blue">
+                        ← {{ commission.event.title }}
+                    </a>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">{{ commission.name }}</h1>
+                {% if commission.description %}
+                    <div class="mt-2 text-gray-600 prose prose-sm max-w-none">
+                        {{ commission.description|safe }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
+            <div class="flex space-x-2">
+                <a href="{% url 'commission_update' commission.pk %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-ios font-medium hover:bg-gray-200">
+                    Modifier
+                </a>
+                <a href="{% url 'commission_manage' commission.event.pk %}" class="px-4 py-2 bg-ios-blue text-white rounded-ios font-medium hover:bg-blue-600">
+                    Gérer les membres
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-6 flex flex-wrap gap-4">
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                <span class="text-xl">👥</span>
+                <span>
+                    <strong>{{ commission.current_count }}</strong> membres
+                    {% if commission.max_capacity %}
+                        / {{ commission.max_capacity }} max
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                <span class="text-xl">👑</span>
+                <span>
+                    Responsable : 
+                    {% if commission.responsible %}
+                        <strong>{{ commission.responsible }}</strong>
+                    {% else %}
+                        <span class="text-gray-400 italic">Non défini</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Members List -->
+    <div class="bg-white rounded-ios-lg shadow-ios overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-900">Membres assignés</h2>
+        </div>
+        
+        {% if assignments %}
+            <div class="divide-y divide-gray-100">
+                {% for assignment in assignments %}
+                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            {% if assignment.member.photo %}
+                                <img class="h-10 w-10 rounded-full object-cover" src="{{ assignment.member.photo.url }}" alt="">
+                            {% else %}
+                                <div class="h-10 w-10 rounded-full bg-ios-blue text-white flex items-center justify-center font-bold text-sm">
+                                    {{ assignment.member.initials }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ assignment.member }}
+                                {% if assignment.member == commission.responsible %}
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Responsable
+                                    </span>
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500">Chambre {{ assignment.member.room_number }}</p>
+                        </div>
+                    </div>
+                    {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
+                    <div class="text-sm text-gray-400">
+                        Assigné par {{ assignment.assigned_by.username|default:"Système" }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-8 text-center text-gray-500">
+                Aucun membre assigné pour le moment.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

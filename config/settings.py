@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'core',
     'apps.member',
     'apps.event',
+    'apps.notification',
     
     # Third-party apps
     'debug_toolbar',
@@ -101,6 +102,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.notification.context_processors.notifications',
             ],
             'builtins': [
 				'django.templatetags.static',

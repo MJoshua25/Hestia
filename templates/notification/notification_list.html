@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes Notifications - Hestia{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto" id="notification-list-app">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-900">Mes Notifications</h1>
+        <button @click="markAllRead" class="text-ios-blue hover:text-blue-700 font-medium text-sm">
+            Tout marquer comme lu
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2">
+        <a href="?filter=all" class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if not request.GET.filter or request.GET.filter == 'all' %}bg-ios-blue text-white{% else %}bg-white text-gray-700 hover:bg-gray-50 border border-gray-200{% endif %}">
+            Toutes
+        </a>
+        <a href="?filter=unread" class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.GET.filter == 'unread' %}bg-ios-blue text-white{% else %}bg-white text-gray-700 hover:bg-gray-50 border border-gray-200{% endif %}">
+            Non lues
+        </a>
+        <a href="?filter=ASSIGNMENT" class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.GET.filter == 'ASSIGNMENT' %}bg-ios-blue text-white{% else %}bg-white text-gray-700 hover:bg-gray-50 border border-gray-200{% endif %}">
+            Attributions
+        </a>
+        <a href="?filter=EVENT" class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.GET.filter == 'EVENT' %}bg-ios-blue text-white{% else %}bg-white text-gray-700 hover:bg-gray-50 border border-gray-200{% endif %}">
+            Événements
+        </a>
+        <a href="?filter=SYSTEM" class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.GET.filter == 'SYSTEM' %}bg-ios-blue text-white{% else %}bg-white text-gray-700 hover:bg-gray-50 border border-gray-200{% endif %}">
+            Système
+        </a>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="bg-white rounded-ios-lg shadow-ios overflow-hidden">
+        {% if notifications %}
+            <div class="divide-y divide-ios-gray-100">
+                {% for notif in notifications %}
+                <div class="p-4 hover:bg-ios-gray-50 transition-colors flex items-start group relative {% if not notif.is_read %}bg-blue-50/30{% endif %}" id="notif-{{ notif.id }}">
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 mr-4 text-2xl">
+                        {{ notif.icon }}
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-sm font-medium text-gray-900 {% if not notif.is_read %}font-bold{% endif %}">
+                                {{ notif.title }}
+                            </h3>
+                            <span class="text-xs text-gray-400 whitespace-nowrap ml-2">
+                                {{ notif.created_at|timesince }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">{{ notif.message }}</p>
+                        
+                        <div class="mt-2 flex items-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% if notif.link %}
+                            <a href="{{ notif.link }}" @click="markAsRead({{ notif.id }})" class="text-xs text-ios-blue hover:underline">
+                                Voir le détail
+                            </a>
+                            {% endif %}
+                            
+                            <button @click="toggleReadStatus({{ notif.id }})" class="text-xs text-gray-500 hover:text-gray-700">
+                                {% if notif.is_read %}Marquer comme non lu{% else %}Marquer comme lu{% endif %}
+                            </button>
+                            
+                            <button @click="deleteNotification({{ notif.id }})" class="text-xs text-ios-red hover:text-red-700">
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Unread Indicator -->
+                    {% if not notif.is_read %}
+                    <div class="absolute top-4 right-4 w-2 h-2 bg-ios-blue rounded-full"></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+                <div class="flex-1 flex justify-between">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Précédent
+                        </a>
+                    {% else %}
+                        <span></span>
+                    {% endif %}
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.filter %}&filter={{ request.GET.filter }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Suivant
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <div class="p-12 text-center">
+                <span class="text-4xl mb-4 block">📭</span>
+                <h3 class="text-lg font-medium text-gray-900">Aucune notification</h3>
+                <p class="text-gray-500 mt-2">Vous n'avez aucune notification pour le moment.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['[[', ']]'],
+        methods: {
+            async markAllRead() {
+                try {
+                    await fetch('{% url "notification:mark_all_as_read" %}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                    });
+                    location.reload();
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+            async markAsRead(id) {
+                // Just fire and forget, the link navigation will happen
+                fetch(`/notifications/api/mark-read/${id}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+            },
+            async toggleReadStatus(id) {
+                try {
+                    const response = await fetch(`/notifications/api/toggle-read/${id}/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                    });
+                    if (response.ok) location.reload();
+                } catch (e) {
+                    console.error(e);
+                }
+            },
+            async deleteNotification(id) {
+                if (!confirm('Supprimer cette notification ?')) return;
+                
+                try {
+                    const response = await fetch(`/notifications/api/delete/${id}/`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                    });
+                    if (response.ok) {
+                        document.getElementById(`notif-${id}`).remove();
+                        Toastify({
+                            text: "Notification supprimée",
+                            duration: 3000,
+                            style: { background: "#8E8E93" }
+                        }).showToast();
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+    }).mount('#notification-list-app');
+</script>
+{% endblock %}

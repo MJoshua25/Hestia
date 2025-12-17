@@ -8,8 +8,8 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'description', 'date', 'location']
         widgets = {
-            'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'description': forms.Textarea(attrs={'rows': 4}),
+            'date': forms.DateTimeInput(attrs={'class': 'flatpickr-datetime'}),
+            'description': forms.Textarea(attrs={'class': 'quill-editor', 'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -21,6 +21,8 @@ class EventForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = input_class
+            else:
+                field.widget.attrs['class'] += f' {input_class}'
             
             # Add focus ring styling
             field.widget.attrs['class'] += ' focus:outline-none'
@@ -30,16 +32,14 @@ class EventForm(forms.ModelForm):
                 field.widget.attrs['placeholder'] = 'Ex: Soirée de Noël'
             elif field_name == 'location':
                 field.widget.attrs['placeholder'] = 'Ex: Salle principale'
-            elif field_name == 'description':
-                field.widget.attrs['placeholder'] = 'Décrivez les détails de l\'événement...'
-
-
+            # Description placeholder handled by Quill or attrs if Quill fails
+            
 class CommissionForm(forms.ModelForm):
     class Meta:
         model = Commission
         fields = ['name', 'description', 'min_capacity', 'max_capacity', 'responsible']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'description': forms.Textarea(attrs={'class': 'quill-editor', 'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -51,8 +51,11 @@ class CommissionForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             if 'class' not in field.widget.attrs:
                 field.widget.attrs['class'] = input_class
+            else:
+                field.widget.attrs['class'] += f' {input_class}'
             
             # Add focus ring styling
+
             field.widget.attrs['class'] += ' focus:outline-none'
             
             # Add placeholder for better UX

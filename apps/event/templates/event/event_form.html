@@ -47,27 +47,7 @@
                     {% endif %}
                 </label>
 
-                {% if field.name == 'date' %}
-                <input type="datetime-local" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|date:'Y-m-d\\TH:i'|default:'' }}"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% elif field.name == 'description' %}
-                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="4"
-                    placeholder="Décrivez les détails de l'événement..."
-                    class="input-ios w-full py-3 {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">{{ field.value|default:'' }}</textarea>
-                {% elif field.name == 'title' %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|default:'' }}" placeholder="Ex: Soirée de Noël"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% elif field.name == 'location' %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|default:'' }}" placeholder="Ex: Salle principale"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% else %}
-                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
-                    value="{{ field.value|default:'' }}"
-                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
-                {% endif %}
+                {{ field }}
 
                 {% if field.help_text %}
                 <p class="mt-1.5 text-sm text-ios-gray-500">{{ field.help_text }}</p>
@@ -108,4 +88,57 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr
+        flatpickr(".flatpickr-datetime", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            locale: "fr",
+            altInput: true,
+            altFormat: "j F Y à H:i",
+            minuteIncrement: 15
+        });
+
+        // Initialize Quill
+        const editors = document.querySelectorAll('.quill-editor');
+        editors.forEach(textarea => {
+            // Create container for Quill
+            const container = document.createElement('div');
+            container.style.height = '200px';
+            container.className = 'bg-white rounded-ios border border-ios-gray-300';
+            
+            // Insert container before textarea
+            textarea.parentNode.insertBefore(container, textarea);
+            
+            // Hide textarea
+            textarea.style.display = 'none';
+            
+            // Init Quill
+            const quill = new Quill(container, {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['link']
+                    ]
+                },
+                placeholder: textarea.getAttribute('placeholder') || ''
+            });
+            
+            // Set initial content
+            quill.root.innerHTML = textarea.value;
+            
+            // Sync content on form submit
+            textarea.form.addEventListener('submit', function() {
+                textarea.value = quill.root.innerHTML;
+            });
+        });
+    });
+</script>
 {% endblock %}

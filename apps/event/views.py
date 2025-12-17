@@ -33,10 +33,6 @@ class EventListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Separate past and future events?
-        # PRD says: "voir deux sections : Événements à venir et Événements passés"
-        # But ListView usually iterates over one list.
-        # I can split them in template or context.
         from django.utils import timezone
         now = timezone.now()
         context['upcoming_events'] = Event.objects.filter(date__gte=now).order_by('date')
@@ -320,3 +316,14 @@ def export_commissions_pdf(request, event_id):
 
     doc.build(elements)
     return response
+
+class CommissionDetailView(LoginRequiredMixin, DetailView):
+    model = Commission
+    template_name = 'event/commission_detail.html'
+    context_object_name = 'commission'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Members list
+        context['assignments'] = self.object.assignments.select_related('member').order_by('member__last_name')
+        return context

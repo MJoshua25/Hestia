@@ -1,8 +1,11 @@
 from django.db import transaction
 from django.utils.translation import gettext as _
+from django.urls import reverse
 import random
 from .models import Commission, Assignment
 from apps.member.models import Member
+from apps.notification.services import NotificationService
+from apps.notification.models import Notification
 
 class AssignmentService:
     @staticmethod
@@ -18,7 +21,7 @@ class AssignmentService:
         
         # 0. Récupération des données
         commissions = list(event.commissions.all()) # Force query to list to avoid reiteration issues
-        members = list(Member.objects.filter(id__in=selected_member_ids))
+        members = list(Member.objects.filter(id__in=selected_member_ids).select_related('user'))
         
         if not commissions:
             return {
@@ -47,16 +50,13 @@ class AssignmentService:
                     }
                 }
             # If force is True, we proceed (best effort)
-
+        
         # 2. Préparation
         random.shuffle(members)
         assignments_map = {c.id: [] for c in commissions}
         members_pool = members.copy()
         
         # 3. Remplissage des Minimums
-        # On trie les commissions par min_capacity décroissant pour d'abord remplir les plus exigentes ? 
-        # Non, ordre arbitraire ok ou ordre de création.
-        
         for commission in commissions:
             needed = commission.min_capacity
             for i in range(needed):
@@ -65,23 +65,15 @@ class AssignmentService:
                     assignments_map[commission.id].append(member)
         
         # 4. Équilibrage du Reste
-        # Tant qu'il reste des membres
         while members_pool:
-            # Trouver la commission éligible avec le MOINS de membres assignés
-            # Éligible = n'a pas atteint son MAX
-            
             eligible_commissions = [
                 c for c in commissions 
                 if (c.max_capacity is None or len(assignments_map[c.id]) < c.max_capacity)
             ]
             
             if not eligible_commissions:
-                # Plus de place nulle part !
-                # On arrête là et on retourne ce qu'on a, ou une erreur ?
-                # Les membres restants ne sont pas assignés.
                 break
                 
-            # On prend celle qui a le moins de membres actuellement
             target_commission = min(eligible_commissions, key=lambda c: len(assignments_map[c.id]))
             
             member_to_assign = members_pool.pop(0)
@@ -92,12 +84,15 @@ class AssignmentService:
         # 5. Sauvegarde Atomique
         with transaction.atomic():
             # Supprimer les anciennes attributions pour cet événement
-            # Attention : cela supprime TOUT pour l'événement, même ce qui était manuel ?
-            # PRD: "L'attribution actuelle sera effacée et remplacée" -> OUI.
             Assignment.objects.filter(commission__event=event).delete()
             
             assignments_to_create = []
+            notifications_to_create = []
+            
             for commission_id, members_list in assignments_map.items():
+                commission = next(c for c in commissions if c.id == commission_id)
+                commission_url = reverse('commission_detail', args=[commission.id])
+                
                 for member in members_list:
                     assignments_to_create.append(
                         Assignment(
@@ -106,8 +101,23 @@ class AssignmentService:
                             assigned_by=user
                         )
                     )
+                    
+                    # Prepare notification
+                    if member.user:
+                        notifications_to_create.append(
+                            Notification(
+                                user=member.user,
+                                type=Notification.Type.ASSIGNMENT,
+                                title=_("Nouvelle commission !"),
+                                message=_("Vous avez été assignée à la commission {} pour l'événement {}").format(commission.name, event.title),
+                                link=commission_url
+                            )
+                        )
             
             Assignment.objects.bulk_create(assignments_to_create)
+            Notification.objects.bulk_create(notifications_to_create)
+            
+        # 6. Résultat
             
         # 6. Résultat
         results = {}
