@@ -25,8 +25,17 @@ SECRET_KEY = 'django-insecure-b##q@q^3!1vx#haz1son=e07!p^)(su_r&rrda(&)4mexd(i7^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+AUTH_USER_MODEL = 'core.User'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Username + Password
+    'core.backends.PhonePasswordBackend',         # Phone + Password
+    'core.backends.PhonePINBackend',              # Phone + PIN
+]
+
+SESSION_COOKIE_AGE = 2592000  # 30 days in seconds
 
 # Application definition
 
@@ -52,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.RequirePasswordChangeMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -108,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
 TIME_ZONE = 'UTC'
 

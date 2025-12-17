@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import modelformset_factory
 from django.utils.translation import gettext_lazy as _
 from .models import Member
 
@@ -34,9 +35,16 @@ class MemberForm(forms.ModelForm):
                 field.widget.attrs['placeholder'] = 'Ex: Dupont'
                 field.widget.attrs['autocomplete'] = 'family-name'
             elif field_name == 'phone_number':
-                field.widget.attrs['placeholder'] = 'Ex: 06 12 34 56 78'
+                field.widget.attrs['placeholder'] = 'Ex: +225 01 02 03 04 05'
                 field.widget.attrs['autocomplete'] = 'tel'
                 field.widget.attrs['inputmode'] = 'tel'
             elif field_name == 'room_number':
                 field.widget.attrs['placeholder'] = 'Ex: 101'
                 field.widget.attrs['inputmode'] = 'numeric'
+
+MemberFormSet = modelformset_factory(
+    Member,
+    form=MemberForm,
+    extra=3,
+    can_delete=True
+)

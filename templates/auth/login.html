@@ -1,0 +1,137 @@
+{% extends "base_auth.html" %}
+
+{% block title %}Connexion - Hestia{% endblock %}
+
+{% block content %}
+<div id="login-app" class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" v-cloak>
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Connexion
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Bienvenue sur votre espace Hestia
+            </p>
+        </div>
+
+        <div class="bg-white py-8 px-4 shadow-ios-xl rounded-ios-xl sm:px-10 border border-gray-100">
+            <!-- Tabs -->
+            <div class="flex space-x-1 rounded-ios bg-gray-100 p-1 mb-6">
+                <button @click="setMethod('username_password')"
+                    :class="{'bg-white shadow-sm text-gray-900': method === 'username_password', 'text-gray-500 hover:text-gray-700': method !== 'username_password'}"
+                    class="flex-1 py-2 px-4 rounded-ios text-sm font-medium transition-all duration-200">
+                    Utilisateur
+                </button>
+                <button @click="setMethod('phone_password')"
+                    :class="{'bg-white shadow-sm text-gray-900': method === 'phone_password', 'text-gray-500 hover:text-gray-700': method !== 'phone_password'}"
+                    class="flex-1 py-2 px-4 rounded-ios text-sm font-medium transition-all duration-200">
+                    Téléphone
+                </button>
+                <button @click="setMethod('phone_pin')"
+                    :class="{'bg-white shadow-sm text-gray-900': method === 'phone_pin', 'text-gray-500 hover:text-gray-700': method !== 'phone_pin'}"
+                    class="flex-1 py-2 px-4 rounded-ios text-sm font-medium transition-all duration-200">
+                    PIN
+                </button>
+            </div>
+
+            <form class="space-y-6" action="{% url 'login' %}" method="POST" @submit="handleSubmit">
+                {% csrf_token %}
+                <input type="hidden" name="method" :value="method">
+
+                <!-- Username Input -->
+                <div v-if="method === 'username_password'">
+                    <label for="username" class="block text-sm font-medium text-gray-700">Nom d'utilisateur</label>
+                    <div class="mt-1">
+                        <input id="username" name="username" type="text" autocomplete="username" required v-model="form.username"
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm">
+                    </div>
+                </div>
+
+                <!-- Phone Input -->
+                <div v-if="method === 'phone_password' || method === 'phone_pin'">
+                    <label for="phone" class="block text-sm font-medium text-gray-700">Numéro de téléphone</label>
+                    <div class="mt-1">
+                        <input id="phone" name="phone" type="tel" autocomplete="tel" required v-model="form.phone"
+                            placeholder="Ex: 06 12 34 56 78"
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm">
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div v-if="method === 'username_password' || method === 'phone_password'">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+                    <div class="mt-1">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required v-model="form.password"
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm">
+                    </div>
+                </div>
+
+                <!-- PIN Input -->
+                <div v-if="method === 'phone_pin'">
+                    <label for="pin" class="block text-sm font-medium text-gray-700">Code PIN (6 chiffres)</label>
+                    <div class="mt-1">
+                        <input id="pin" name="pin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" required v-model="form.pin"
+                            placeholder="● ● ● ● ● ●"
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm tracking-widest text-center font-mono text-lg">
+                    </div>
+                    <p class="mt-2 text-xs text-center text-gray-500">Vous devez avoir défini un code PIN au préalable.</p>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember_me" name="remember_me" type="checkbox" v-model="form.rememberMe"
+                            class="h-4 w-4 text-ios-blue focus:ring-ios-blue border-gray-300 rounded">
+                        <label for="remember_me" class="ml-2 block text-sm text-gray-900">
+                            Rester connecté(e)
+                        </label>
+                    </div>
+
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-ios-blue hover:text-blue-500">
+                            Problème de connexion ?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ios-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ios-blue transition-colors duration-200">
+                        Se connecter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const { createApp } = Vue;
+
+    createApp({
+        delimiters: ['$[', ']'],
+        data() {
+            return {
+                method: 'username_password', // Default method
+                form: {
+                    username: '',
+                    phone: '',
+                    password: '',
+                    pin: '',
+                    rememberMe: false
+                }
+            }
+        },
+        methods: {
+            setMethod(method) {
+                this.method = method;
+            },
+            handleSubmit(e) {
+                // Basic validation if needed, HTML5 validation is already present with 'required'
+                // We can add more specific validation here if requested
+            }
+        }
+    }).mount('#login-app');
+</script>
+{% endblock %}

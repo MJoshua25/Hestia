@@ -7,8 +7,7 @@
     <!-- Page Header -->
     <div class="mb-6">
         <h1 class="text-2xl sm:text-3xl font-bold text-ios-gray-900">Membres</h1>
-        <p class="mt-1 text-ios-gray-500">{{ members|length }} membre{{ members|length|pluralize:"s" }} enregistré{{
-            members|length|pluralize:"s" }}</p>
+        <p class="mt-1 text-ios-gray-500">{{ members|length }} membre{{ members|length|pluralize:"s" }} enregistré{{ members|length|pluralize:"s" }}</p>
     </div>
 
     <!-- Search & Actions Bar -->
@@ -28,6 +27,7 @@
         </form>
 
         <!-- Action Buttons -->
+        {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
         <div class="flex gap-2">
             <a href="{% url 'member:member_import' %}" class="btn-secondary-ios flex-1 sm:flex-none btn-press">
                 <svg class="w-5 h-5 mr-2 sm:mr-0 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,6 +36,13 @@
                 </svg>
                 <span class="sm:hidden">Importer</span>
             </a>
+            <a href="{% url 'member:member_bulk_add' %}" class="btn-secondary-ios flex-1 sm:flex-none btn-press">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="hidden sm:inline">Ajout multiple</span>
+                <span class="sm:hidden">Multiple</span>
+            </a>
             <a href="{% url 'member:member_add' %}" class="btn-primary-ios flex-1 sm:flex-none btn-press">
                 <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -43,6 +50,7 @@
                 Ajouter
             </a>
         </div>
+        {% endif %}
     </div>
 
     <!-- Desktop Table View -->
@@ -73,8 +81,7 @@
                                 {{ member.first_name|slice:":1"|upper }}{{ member.last_name|slice:":1"|upper }}
                             </div>
                             <div>
-                                <div class="font-semibold text-ios-gray-900">{{ member.first_name }} {{ member.last_name
-                                    }}</div>
+                                <div class="font-semibold text-ios-gray-900">{{ member.first_name }} {{ member.last_name }}</div>
                                 {% if member.is_delegate or member.is_admin %}
                                 <span
                                     class="badge-ios mt-1 {% if member.is_admin %}bg-purple-100 text-purple-700{% else %}bg-ios-blue/10 text-ios-blue{% endif %}">
@@ -107,6 +114,7 @@
                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </a>
+                            {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
                             <a href="{% url 'member:member_edit' member.pk %}"
                                 class="inline-flex items-center justify-center min-w-touch min-h-touch rounded-ios text-ios-gray-500 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors"
                                 title="Modifier">
@@ -123,6 +131,7 @@
                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -139,6 +148,7 @@
                             </div>
                             <p class="text-ios-gray-600 font-medium mb-1">Aucun membre trouvé</p>
                             <p class="text-ios-gray-400 text-sm mb-4">Commencez par ajouter votre premier membre</p>
+                            {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
                             <a href="{% url 'member:member_add' %}" class="btn-primary-ios btn-press">
                                 <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -146,6 +156,7 @@
                                 </svg>
                                 Ajouter un membre
                             </a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

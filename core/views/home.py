@@ -32,7 +32,4 @@ class HomeView(LoginRequiredMixin, TemplateView):
             # My commissions
             context['my_commissions'] = member.commissions.filter(event__date__gte=now).select_related('event')
             
-            # Distinct events from my commissions
-            # This logic might be slightly redundant but clear for template
-            
         return context

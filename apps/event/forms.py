@@ -37,7 +37,7 @@ class EventForm(forms.ModelForm):
 class CommissionForm(forms.ModelForm):
     class Meta:
         model = Commission
-        fields = ['name', 'description', 'max_capacity']
+        fields = ['name', 'description', 'min_capacity', 'max_capacity', 'responsible']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }

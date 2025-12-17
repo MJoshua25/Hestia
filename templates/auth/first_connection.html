@@ -1,0 +1,64 @@
+{% extends 'base_auth.html' %}
+{% load static %}
+
+{% block title %}Première Connexion - Hestia{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Première Connexion 👋
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Bienvenue ! Configure ton compte pour continuer.
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow-ios-xl rounded-ios-xl sm:px-10 border border-gray-100">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="new_password" class="block text-sm font-medium text-gray-700">Nouveau mot de passe <span class="text-ios-red">*</span></label>
+                    <div class="mt-1">
+                        <input id="new_password" name="new_password" type="password" required
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm"
+                            placeholder="Minimum 8 caractères">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirmer le mot de passe <span class="text-ios-red">*</span></label>
+                    <div class="mt-1">
+                        <input id="confirm_password" name="confirm_password" type="password" required
+                            class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm"
+                            placeholder="Répéter le mot de passe">
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-lg font-medium text-gray-900">Code PIN (Optionnel)</h3>
+                    <p class="mt-1 text-xs text-gray-500">Configure un code PIN à 6 chiffres pour te connecter rapidement avec ton numéro de téléphone.</p>
+
+                    <div class="mt-4">
+                        <label for="pin_code" class="block text-sm font-medium text-gray-700">Code PIN</label>
+                        <div class="mt-1">
+                            <input id="pin_code" name="pin_code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm tracking-widest text-center font-mono text-lg"
+                                placeholder="● ● ● ● ● ●">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-ios-blue hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ios-blue transition-colors duration-200">
+                        Valider le compte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

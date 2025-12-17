@@ -17,3 +17,4 @@ python-dotenv==1.0.0
 django-admin-interface==0.28.6
 openpyxl>=3.1
 phonenumbers>=8.13
+reportlab>=4.0

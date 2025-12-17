@@ -98,11 +98,38 @@
                     <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Ajouter le membre
+                    Ajouter
                     {% endif %}
                 </button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.querySelector('input[name="phone_number"]');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})/);
+                if (!x[2]) {
+                    e.target.value = x[1] ? '+' + x[1] : '';
+                } else {
+                    e.target.value = '+' + x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '') + (x[5] ? ' ' + x[5] : '') + (x[6] ? ' ' + x[6] : '');
+                }
+            });
+            
+            // Initial format if value exists
+            if (phoneInput.value && !phoneInput.value.includes('+')) {
+                 // Assuming it's just numbers, try to format
+                 let x = phoneInput.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})(\d{0,2})/);
+                 if (x[2]) {
+                    phoneInput.value = '+' + x[1] + ' ' + x[2] + (x[3] ? ' ' + x[3] : '') + (x[4] ? ' ' + x[4] : '') + (x[5] ? ' ' + x[5] : '') + (x[6] ? ' ' + x[6] : '');
+                 }
+            }
+        }
+    });
+</script>
 {% endblock %}

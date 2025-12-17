@@ -7,6 +7,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Gestionnaire de Foyer{% endblock %}</title>
 
+    <!-- SEO & Meta Tags -->
+    <meta name="description" content="Gestionnaire de Foyer pour Jeunes Filles - Hestia">
+    <meta name="keywords" content="hestia, foyer, gestion, commissions, événements">
+    <meta name="author" content="Hestia">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}Hestia - Gestionnaire de Foyer{% endblock %}">
+    <meta property="og:description" content="Plateforme de gestion pour le foyer Hestia.">
+    <meta property="og:image" content="{% static 'icons/icon-512x512.png' %}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}Hestia - Gestionnaire de Foyer{% endblock %}">
+    <meta property="twitter:description" content="Plateforme de gestion pour le foyer Hestia.">
+    <meta property="twitter:image" content="{% static 'icons/icon-512x512.png' %}">
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#007AFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,8 +37,8 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
 
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="{% static 'icons/icon-152x152.png' %}">
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'icons/icon-192x192.png' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'icons/icon-192x192.png' %}">
 
     <!-- Tailwind CSS CDN -->
@@ -38,6 +58,7 @@
             <div class="flex justify-between h-14">
                 <div class="flex items-center">
                     <a href="{% url 'home' %}" class="flex items-center space-x-2">
+                        <img src="{% static 'icons/icon-72x72.png' %}" alt="Hestia Logo" class="h-8 w-8 rounded-lg">
                         <span
                             class="text-xl font-bold bg-gradient-to-r from-ios-blue to-purple-500 bg-clip-text text-transparent">
                             Hestia
@@ -45,29 +66,35 @@
                     </a>
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-1">
                         <a href="{% url 'home' %}"
-                            class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                            class="px-3 py-2 rounded-ios text-sm font-medium {% if request.resolver_match.url_name == 'home' %}text-ios-blue bg-ios-blue/10{% else %}text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10{% endif %} transition-colors">
                             Accueil
                         </a>
                         
                         {% if user.is_authenticated %}
-                            {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
                             <a href="{% url 'member:member_list' %}"
-                                class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                                class="px-3 py-2 rounded-ios text-sm font-medium {% if 'member' in request.resolver_match.app_names %}text-ios-blue bg-ios-blue/10{% else %}text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10{% endif %} transition-colors">
                                 Membres
                             </a>
-                            {% endif %}
                         {% endif %}
 
                         <a href="{% url 'event_list' %}"
-                            class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                            class="px-3 py-2 rounded-ios text-sm font-medium {% if 'event' in request.resolver_match.app_names %}text-ios-blue bg-ios-blue/10{% else %}text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10{% endif %} transition-colors">
                             Événements
+                        </a>
+                        
+                        <!-- Commissions Link (Active for everyone but different view) -->
+                        <a href="#" class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                            Commissions
+                        </a>
+                        <a href="{% url 'logout' %}" class="px-3 py-2 rounded-ios text-sm font-medium text-ios-red hover:bg-ios-red/10 transition-colors">
+                            Se déconnecter
                         </a>
                     </div>
                 </div>
 
                 <!-- Mobile menu button -->
-                <div class="flex items-center sm:hidden">
-                    <button type="button"
+                <div class="flex items-center sm:hidden" id="mobile-menu-container">
+                    <button type="button" @click="isOpen = !isOpen"
                         class="inline-flex items-center justify-center min-w-touch min-h-touch rounded-ios text-ios-gray-600 hover:text-ios-gray-900 hover:bg-ios-gray-100 transition-colors"
                         aria-label="Menu">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,6 +102,37 @@
                                 d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
+                    
+                    <!-- Mobile Menu Overlay -->
+                    <div v-if="isOpen" class="absolute top-16 right-4 w-64 bg-white rounded-ios-lg shadow-ios-xl border border-ios-gray-200 py-2 z-50 transform origin-top-right transition-all">
+                        <a href="{% url 'home' %}" class="block px-4 py-3 text-base font-medium {% if request.resolver_match.url_name == 'home' %}text-ios-blue bg-ios-blue/5{% else %}text-gray-700 hover:bg-ios-gray-50{% endif %}">
+                            🏠 Accueil
+                        </a>
+                        
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'member:member_list' %}" class="block px-4 py-3 text-base font-medium {% if 'member' in request.resolver_match.app_names %}text-ios-blue bg-ios-blue/5{% else %}text-gray-700 hover:bg-ios-gray-50{% endif %}">
+                                👥 Membres
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'event_list' %}" class="block px-4 py-3 text-base font-medium {% if 'event' in request.resolver_match.app_names %}text-ios-blue bg-ios-blue/5{% else %}text-gray-700 hover:bg-ios-gray-50{% endif %}">
+                            📅 Événements
+                        </a>
+                        
+                        <a href="#" class="block px-4 py-3 text-base font-medium text-gray-700 hover:bg-ios-gray-50">
+                            📋 Commissions
+                        </a>
+                        
+                        <div class="border-t border-ios-gray-100 my-1"></div>
+                        
+                        <a href="#" class="block px-4 py-3 text-base font-medium text-gray-700 hover:bg-ios-gray-50">
+                            👤 Mon Profil
+                        </a>
+
+                        <a href="{% url 'logout' %}" class="block px-4 py-3 text-base font-medium text-ios-red hover:bg-ios-red/5">
+                            🚪 Se déconnecter
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,6 +178,19 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Mobile Menu Vue App -->
+    <script>
+        const { createApp } = Vue;
+        
+        createApp({
+            data() {
+                return {
+                    isOpen: false
+                }
+            }
+        }).mount('#mobile-menu-container');
+    </script>
 </body>
 
 </html>
