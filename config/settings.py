@@ -10,22 +10,39 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+import django.db.models.signals
+
+load_dotenv()  # take environment variables from .env.
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_URL = os.environ.get('BASE_URL', '').rstrip('/')
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-b##q@q^3!1vx#haz1son=e07!p^)(su_r&rrda(&)4mexd(i7^'
+SECRET_KEY = os.environ.get("SECRET_KEY", default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", 'True').lower() in ['true', 'yes', '1']
 
 ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+	'https://*.yedjap.ci',
+	'http://localhost',
+	'http://localhost:8081',
+	'http://127.0.0.1',
+	'http://127.0.0.1:8081'
+]
+
+CSRF_TRUSTED_ORIGINS += [BASE_URL,]
+
+POSTGRES = os.environ.get("DB", '').lower() in ['postgres', ]
 
 AUTH_USER_MODEL = 'core.User'
 
@@ -40,6 +57,8 @@ SESSION_COOKIE_AGE = 2592000  # 30 days in seconds
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_interface',
+    'colorfield',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,12 +70,17 @@ INSTALLED_APPS = [
     'core',
     'apps.member',
     'apps.event',
+    
+    # Third-party apps
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -78,6 +102,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'builtins': [
+				'django.templatetags.static',
+			],
         },
     },
 ]
@@ -94,6 +121,17 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+if POSTGRES:
+	DATABASES = {
+		'default': {
+			'ENGINE': 'django.db.backends.postgresql',
+			'HOST': os.environ.get('POSTGRES_HOST'),
+			'NAME': os.environ.get('POSTGRES_DB'),
+			'USER': os.environ.get('POSTGRES_USER'),
+			'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+		}
+	}
 
 
 # Password validation
@@ -130,9 +168,35 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "static_cdn")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media_cdn")
+
+if BASE_URL:
+	STATIC_URL = f"{BASE_URL}/static/"
+else:
+	STATIC_URL = '/static/'
+
+if BASE_URL:
+	MEDIA_URL = f"{BASE_URL}/media/"
+else:
+	MEDIA_URL = '/media/'
+
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+	os.path.join(BASE_DIR, "static"),
+]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+		"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+	},
+}
+WHITENOISE_MANIFEST_STRICT = False
+
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 # Default primary key field type
