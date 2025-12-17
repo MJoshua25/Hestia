@@ -6,7 +6,7 @@ from apps.member.models import Member
 
 class AssignmentService:
     @staticmethod
-    def assign_automatically(event, selected_member_ids, user):
+    def assign_automatically(event, selected_member_ids, user, force=False):
         """
         Attribue automatiquement les membres sélectionnés aux commissions de l'événement.
         Algorithme:
@@ -37,12 +37,16 @@ class AssignmentService:
         total_members_count = len(members)
 
         if total_min_capacity > total_members_count:
-            return {
-                'status': 'error', # Using error here to block, PRD said warning but implies action needed. 
-                                   # We can handle warning in frontend effectively, but service usually returns success/error structure.
-                                   # For now, treat as error blocking auto-assign unless "forced" (not implemented yet).
-                'message': _("Le nombre de membres sélectionnés ({}) est insuffisant pour couvrir les besoins minimums ({})").format(total_members_count, total_min_capacity)
-            }
+            if not force:
+                return {
+                    'status': 'warning_min_capacity',
+                    'message': _("Le nombre de membres sélectionnés ({}) est insuffisant pour couvrir les besoins minimums ({})").format(total_members_count, total_min_capacity),
+                    'details': {
+                        'total_min': total_min_capacity,
+                        'total_selected': total_members_count
+                    }
+                }
+            # If force is True, we proceed (best effort)
 
         # 2. Préparation
         random.shuffle(members)

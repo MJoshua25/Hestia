@@ -87,8 +87,36 @@ class AssignmentServiceTests(TestCase):
             self.admin_user
         )
         
-        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['status'], 'warning_min_capacity')
         self.assertIn("insuffisant", result['message'])
+
+    def test_force_assignment(self):
+        # Min needed: 3 + 5 + 0 = 8
+        # Select only 5 members
+        selected_ids = [m.id for m in self.members[:5]]
+        
+        # Try with force=True
+        result = AssignmentService.assign_automatically(
+            self.event, 
+            selected_ids, 
+            self.admin_user,
+            force=True
+        )
+        
+        self.assertEqual(result['status'], 'success')
+        
+        # Verify Assignments count (should be 5)
+        total_assigned = Assignment.objects.filter(commission__event=self.event).count()
+        self.assertEqual(total_assigned, 5)
+        
+        # Verify warnings in result (service logic returns warnings list?)
+        # Let's check service logic...
+        # It returns 'details' with 'filled_min' status.
+        
+        details = result['details']
+        # Check if we have some commissions not filled
+        not_filled = [d for d in details.values() if not d['filled_min']]
+        self.assertTrue(len(not_filled) > 0)
 
     def test_reassignment_clears_previous(self):
         # First assignment

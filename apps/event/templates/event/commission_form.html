@@ -2,6 +2,38 @@
 
 {% block title %}{% if object %}Modifier{% else %}Ajouter{% endif %} une commission{% endblock %}
 
+{% block extra_js %}
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const minInput = document.querySelector('input[name="min_capacity"]');
+            const maxInput = document.querySelector('input[name="max_capacity"]');
+            
+            const currentCount = {{ object.current_count|default:0 }};
+            const newMin = parseInt(minInput.value) || 0;
+            const newMax = maxInput.value ? parseInt(maxInput.value) : null;
+            
+            let warnings = [];
+            
+            if (currentCount > 0) {
+                if (newMin > currentCount) {
+                    warnings.push(`⚠️ Le minimum (${newMin}) est supérieur au nombre actuel de membres (${currentCount}).`);
+                }
+                
+                if (newMax !== null && newMax < currentCount) {
+                    warnings.push(`⚠️ Le maximum (${newMax}) est inférieur au nombre actuel de membres (${currentCount}).`);
+                }
+            }
+            
+            if (warnings.length > 0) {
+                warnings.push("\nVoulez-vous continuer ?");
+                if (!confirm(warnings.join("\n"))) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-xl mx-auto space-y-6">
     <!-- Back Navigation -->

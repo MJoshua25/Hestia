@@ -1,11 +1,15 @@
-const { createApp } = Vue;
+(function() {
+    const { createApp } = Vue;
 
-createApp({
+    createApp({
     delimiters: ['[[', ']]'],
     data() {
         return {
             eventId: null,
             csrfToken: null,
+            apiUrl: null,
+            autoAssignUrl: null,
+            manualAssignUrl: null,
             commissions: [],
             availableMembers: [], // List of {id, name, ...}
             
@@ -32,6 +36,9 @@ createApp({
         const appEl = document.getElementById('commission-app');
         this.eventId = appEl.dataset.eventId;
         this.csrfToken = appEl.dataset.csrfToken;
+        this.apiUrl = appEl.dataset.apiUrl;
+        this.autoAssignUrl = appEl.dataset.autoAssignUrl;
+        this.manualAssignUrl = appEl.dataset.manualAssignUrl;
         
         this.loadData();
     },
@@ -68,7 +75,7 @@ createApp({
         async loadData() {
             this.loading = true;
             try {
-                const response = await fetch(`/apps/event/${this.eventId}/api/commissions/`);
+                const response = await fetch(this.apiUrl);
                 if (!response.ok) throw new Error("Erreur chargement");
                 const data = await response.json();
                 
@@ -97,7 +104,9 @@ createApp({
             }
         },
         
-        async runAutoAssign() {
+        async runAutoAssign(force = false) {
+            if (typeof force !== 'boolean') force = false;
+            
             if (this.selectedMembers.length === 0) {
                 this.showToast("Veuillez sélectionner au moins un membre", "warning");
                 return;
@@ -105,14 +114,15 @@ createApp({
             
             this.assigning = true;
             try {
-                const response = await fetch(`/apps/event/${this.eventId}/api/assign/auto/`, {
+                const response = await fetch(this.autoAssignUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': this.csrfToken
                     },
                     body: JSON.stringify({
-                        member_ids: this.selectedMembers
+                        member_ids: this.selectedMembers,
+                        force: force
                     })
                 });
                 
@@ -122,6 +132,11 @@ createApp({
                     this.showToast(result.message || "Attribution réussie !", "success");
                     this.showAssignModal = false;
                     await this.loadData();
+                } else if (result.status === 'warning_min_capacity') {
+                    // Show confirmation for force
+                    if (confirm(`⚠️ ATTENTION : ${result.message}\n\nVoulez-vous forcer l'attribution (certains minimums ne seront pas respectés) ?`)) {
+                        await this.runAutoAssign(true);
+                    }
                 } else {
                     this.showToast(result.message || "Erreur lors de l'attribution", "error");
                 }
@@ -162,7 +177,7 @@ createApp({
         
         async performAction(commissionId, memberId, action) {
             try {
-                const response = await fetch(`/apps/event/${this.eventId}/api/assign/manual/`, {
+                const response = await fetch(this.manualAssignUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -198,3 +213,4 @@ createApp({
         }
     }
 }).mount('#commission-app');
+})();

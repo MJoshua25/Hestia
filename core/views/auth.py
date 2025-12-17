@@ -24,6 +24,8 @@ class LoginView(View):
             
         method = request.POST.get('method')
         user = None
+        print(f"Method: {method}")
+        print(f"POST data: {request.POST}")
         
         if method == "username_password":
             username = request.POST.get('username')
@@ -38,6 +40,8 @@ class LoginView(View):
         elif method == "phone_pin":
             phone = request.POST.get('phone')
             pin = request.POST.get('pin')
+            
+            print(f"Phone: {phone}, PIN: {pin}")
             # Assuming the backend expects 'pin_code' not 'pin', but authenticate uses kwargs matching backend signautre
             # Check backend signature: authenticate(self, request, phone_number=None, pin_code=None, **kwargs)
             user = authenticate(request, phone_number=phone, pin_code=pin)

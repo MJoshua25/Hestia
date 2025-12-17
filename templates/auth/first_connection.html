@@ -60,7 +60,16 @@
                     <div class="mt-4">
                         <label for="pin_code" class="block text-sm font-medium text-gray-700">Code PIN</label>
                         <div class="mt-1">
-                            <input id="pin_code" name="pin_code" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" v-model="pin"
+                            <input id="pin_code" name="pin_code" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" v-model="pin"
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm tracking-widest text-center font-mono text-lg"
+                                placeholder="● ● ● ● ● ●">
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="confirm_pin_code" class="block text-sm font-medium text-gray-700">Confirmer le code PIN</label>
+                        <div class="mt-1">
+                            <input id="confirm_pin_code" name="confirm_pin_code" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" v-model="confirmPin"
                                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-ios-blue focus:border-ios-blue sm:text-sm tracking-widest text-center font-mono text-lg"
                                 placeholder="● ● ● ● ● ●">
                         </div>
@@ -90,6 +99,7 @@
                 password: '',
                 confirmPassword: '',
                 pin: '',
+                confirmPin: '',
                 errorMessage: ''
             }
         },
@@ -112,16 +122,24 @@
                 }
 
                 // PIN validation (if provided)
-                if (this.pin && this.pin.length !== 6) {
-                    this.errorMessage = "Le code PIN doit contenir exactement 6 chiffres.";
-                    e.preventDefault();
-                    return;
-                }
-                
-                if (this.pin && !/^\d+$/.test(this.pin)) {
-                     this.errorMessage = "Le code PIN doit contenir uniquement des chiffres.";
-                     e.preventDefault();
-                     return;
+                if (this.pin) {
+                    if (this.pin.length !== 6) {
+                        this.errorMessage = "Le code PIN doit contenir exactement 6 chiffres.";
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    if (!/^\d+$/.test(this.pin)) {
+                        this.errorMessage = "Le code PIN doit contenir uniquement des chiffres.";
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (this.pin !== this.confirmPin) {
+                        this.errorMessage = "Les codes PIN ne correspondent pas.";
+                        e.preventDefault();
+                        return;
+                    }
                 }
             }
         }

@@ -188,6 +188,24 @@
                 return {
                     isOpen: false
                 }
+            },
+            mounted() {
+                // Auto-dismiss toast messages after 3 seconds
+                const toasts = document.querySelectorAll('.toast-ios');
+                if (toasts.length > 0) {
+                    setTimeout(() => {
+                        toasts.forEach(toast => {
+                            toast.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                            toast.style.opacity = '0';
+                            toast.style.transform = 'translateX(-50%) translateY(-20px)';
+                            
+                            // Remove from DOM after transition
+                            setTimeout(() => {
+                                toast.remove();
+                            }, 500);
+                        });
+                    }, 3000);
+                }
             }
         }).mount('#mobile-menu-container');
     </script>

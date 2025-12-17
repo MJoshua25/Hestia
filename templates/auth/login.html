@@ -162,6 +162,7 @@
         },
         mounted() {
             // Check initial state
+            console.log('Initial method:', this.method);
             if (this.method === 'phone_password' || this.method === 'phone_pin') {
                 this.initPhoneMask();
             }
@@ -211,6 +212,9 @@
                         isValid = false;
                     }
                 }
+                console.log('Form data:', this.form);
+                console.log('Is valid:', isValid);
+                console.log('Phone mask:', this.phoneMask);
 
                 if (!isValid) {
                     e.preventDefault();
@@ -218,7 +222,15 @@
                 }
                 
                 // If valid, ensure phone value is correct (already synced via mask)
-                // We submit the form naturally
+                // We submit the form naturally, BUT we must clean the phone number to remove spaces
+                // because backend expects '+2250170648333' not '+225 01 70 64 83 33'
+                
+                if (this.method === 'phone_password' || this.method === 'phone_pin') {
+                    // Update the form input value directly in the DOM before submission
+                    const phoneInput = document.getElementById('phone');
+                    // Remove all spaces from the value
+                    phoneInput.value = this.form.phone.replace(/\s/g, '');
+                }
             }
         }
     }).mount('#login-app');

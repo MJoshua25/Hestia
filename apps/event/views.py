@@ -179,9 +179,10 @@ class AssignmentAutoAPI(AdminOrDelegateRequiredMixin, View):
         try:
             data = json.loads(request.body)
             member_ids = data.get('member_ids', [])
+            force = data.get('force', False)
             event = get_object_or_404(Event, pk=event_id)
             
-            result = AssignmentService.assign_automatically(event, member_ids, request.user)
+            result = AssignmentService.assign_automatically(event, member_ids, request.user, force=force)
             return JsonResponse(result)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
