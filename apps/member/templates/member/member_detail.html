@@ -1,64 +1,125 @@
 {% extends 'base.html' %}
 
-{% block title %}Détail membre{% endblock %}
+{% block title %}{{ member.first_name }} {{ member.last_name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto bg-white shadow overflow-hidden sm:rounded-lg">
-    <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
-        <div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Informations du membre
-            </h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                Détails personnels et coordonnées.
-            </p>
+<div class="max-w-lg mx-auto">
+    <!-- Back button -->
+    <a href="{% url 'member:member_list' %}"
+        class="inline-flex items-center text-ios-blue font-medium mb-6 hover:opacity-80 transition-opacity min-h-touch">
+        <svg class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Membres
+    </a>
+
+    <!-- Profile Card -->
+    <div class="card-ios overflow-hidden">
+        <!-- Profile Header -->
+        <div class="p-6 bg-gradient-to-br from-ios-blue to-purple-500 text-white text-center">
+            <div
+                class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+                {{ member.first_name|slice:":1"|upper }}{{ member.last_name|slice:":1"|upper }}
+            </div>
+            <h1 class="text-xl font-bold">{{ member.first_name }} {{ member.last_name }}</h1>
+            <div class="mt-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                    {% if member.is_admin %}bg-white/20 text-white
+                    {% elif member.is_delegate %}bg-white/20 text-white
+                    {% else %}bg-white/20 text-white{% endif %}">
+                    {{ member.get_role_display }}
+                </span>
+            </div>
         </div>
-        <div class="flex space-x-3">
-            <a href="{% url 'member:member_edit' member.pk %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+
+        <!-- Info List (iOS Settings style) -->
+        <div class="divide-y divide-ios-gray-100">
+            <!-- Phone -->
+            <div class="list-item-ios justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-ios-green/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-ios-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                    </div>
+                    <span class="text-sm text-ios-gray-500">Téléphone</span>
+                </div>
+                <a href="tel:{{ member.phone_number }}" class="text-ios-blue font-medium">
+                    {{ member.phone_number }}
+                </a>
+            </div>
+
+            <!-- Room -->
+            <div class="list-item-ios justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-ios-orange/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-ios-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <span class="text-sm text-ios-gray-500">Chambre</span>
+                </div>
+                <span class="text-ios-gray-900 font-medium">{{ member.room_number }}</span>
+            </div>
+
+            <!-- Role -->
+            <div class="list-item-ios justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                    </div>
+                    <span class="text-sm text-ios-gray-500">Rôle</span>
+                </div>
+                <span class="badge-ios 
+                    {% if member.is_admin %}bg-purple-100 text-purple-700
+                    {% elif member.is_delegate %}bg-ios-blue/10 text-ios-blue
+                    {% else %}bg-ios-gray-100 text-ios-gray-700{% endif %}">
+                    {{ member.get_role_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="p-4 bg-ios-gray-50/50 flex flex-col sm:flex-row gap-3">
+            <a href="{% url 'member:member_edit' member.pk %}" class="btn-primary-ios flex-1 justify-center btn-press">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
                 Modifier
             </a>
-            <a href="{% url 'member:member_delete' member.pk %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            <a href="{% url 'member:member_delete' member.pk %}" class="btn-danger-ios flex-1 justify-center btn-press">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
                 Supprimer
             </a>
         </div>
     </div>
-    <div class="border-t border-gray-200">
-        <dl>
-            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt class="text-sm font-medium text-gray-500">
-                    Nom complet
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {{ member.first_name }} {{ member.last_name }}
-                </dd>
+
+    <!-- Quick actions -->
+    <div class="mt-4 card-ios overflow-hidden">
+        <a href="tel:{{ member.phone_number }}"
+            class="list-item-ios justify-between hover:bg-ios-gray-50 active:bg-ios-gray-100 transition-colors">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-ios-green flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                </div>
+                <span class="font-medium text-ios-gray-900">Appeler {{ member.first_name }}</span>
             </div>
-            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt class="text-sm font-medium text-gray-500">
-                    Rôle
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if member.is_admin %}bg-purple-100 text-purple-800{% elif member.is_delegate %}bg-blue-100 text-blue-800{% else %}bg-green-100 text-green-800{% endif %}">
-                        {{ member.get_role_display }}
-                    </span>
-                </dd>
-            </div>
-            <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt class="text-sm font-medium text-gray-500">
-                    Numéro de téléphone
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {{ member.phone_number }}
-                </dd>
-            </div>
-            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt class="text-sm font-medium text-gray-500">
-                    Chambre
-                </dt>
-                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {{ member.room_number }}
-                </dd>
-            </div>
-        </dl>
+            <svg class="w-5 h-5 text-ios-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -3,54 +3,204 @@
 {% block title %}Importer des membres{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow sm:rounded-lg">
-    <div class="px-4 py-5 sm:p-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">
-            Importer des membres
-        </h3>
-        <div class="mt-2 max-w-xl text-sm text-gray-500">
-            <p>Le fichier Excel doit contenir les colonnes suivantes :</p>
-            <ul class="list-disc pl-5 mt-2">
-                <li>Prénom</li>
-                <li>Nom</li>
-                <li>Numéro de téléphone</li>
-                <li>Chambre</li>
-            </ul>
+<div class="max-w-lg mx-auto">
+    <!-- Back button -->
+    <a href="{% url 'member:member_list' %}"
+        class="inline-flex items-center text-ios-blue font-medium mb-6 hover:opacity-80 transition-opacity min-h-touch">
+        <svg class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour
+    </a>
+
+    <div class="card-ios overflow-hidden">
+        <!-- Header -->
+        <div class="p-6 border-b border-ios-gray-100">
+            <div class="w-12 h-12 rounded-ios-lg bg-ios-green/10 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-ios-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <h1 class="text-xl font-bold text-ios-gray-900">Importer des membres</h1>
+            <p class="mt-1 text-sm text-ios-gray-500">
+                Importez plusieurs membres à la fois depuis un fichier Excel.
+            </p>
         </div>
-        <form method="post" enctype="multipart/form-data" class="mt-5 space-y-6">
+
+        <!-- Format instructions -->
+        <div class="p-6 bg-ios-gray-50/50 border-b border-ios-gray-100">
+            <h2 class="text-sm font-semibold text-ios-gray-700 mb-3">Format requis</h2>
+            <p class="text-sm text-ios-gray-500 mb-3">
+                Le fichier Excel doit contenir les colonnes suivantes :
+            </p>
+            <div class="space-y-2">
+                <div class="flex items-center space-x-3">
+                    <span
+                        class="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue text-xs font-bold flex items-center justify-center">1</span>
+                    <span class="text-sm text-ios-gray-700">Prénom</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span
+                        class="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue text-xs font-bold flex items-center justify-center">2</span>
+                    <span class="text-sm text-ios-gray-700">Nom</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span
+                        class="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue text-xs font-bold flex items-center justify-center">3</span>
+                    <span class="text-sm text-ios-gray-700">Numéro de téléphone</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span
+                        class="w-6 h-6 rounded-full bg-ios-blue/10 text-ios-blue text-xs font-bold flex items-center justify-center">4</span>
+                    <span class="text-sm text-ios-gray-700">Chambre</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <form method="post" enctype="multipart/form-data" class="p-6">
             {% csrf_token %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700">
-                    Fichier Excel
-                </label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                    <div class="space-y-1 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+            <!-- Drag & Drop Zone -->
+            <div id="drop-zone"
+                class="relative border-2 border-dashed border-ios-gray-200 rounded-ios-lg p-8 text-center hover:border-ios-blue hover:bg-ios-blue/5 transition-colors cursor-pointer">
+                <input type="file" name="file" id="file-upload" accept=".xlsx,.xls"
+                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+
+                <div class="pointer-events-none">
+                    <div class="w-16 h-16 rounded-full bg-ios-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-ios-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
-                        <div class="flex text-sm text-gray-600">
-                            <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                                <span>Télécharger un fichier</span>
-                                <input id="file-upload" name="file" type="file" class="sr-only" accept=".xlsx, .xls">
-                            </label>
-                            <p class="pl-1">ou glisser-déposer</p>
-                        </div>
-                        <p class="text-xs text-gray-500">
-                            XLSX, XLS jusqu'à 10MB
-                        </p>
                     </div>
+                    <p class="text-ios-gray-600 font-medium mb-1">
+                        Glissez votre fichier ici
+                    </p>
+                    <p class="text-sm text-ios-gray-400">
+                        ou <span class="text-ios-blue font-medium">parcourir</span>
+                    </p>
+                    <p class="text-xs text-ios-gray-400 mt-3">
+                        Formats acceptés : XLSX, XLS (max. 10 MB)
+                    </p>
                 </div>
             </div>
 
-            <div class="flex justify-end">
-                <a href="{% url 'member:member_list' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <!-- Selected file display -->
+            <div id="file-display" class="hidden mt-4 p-4 rounded-ios bg-ios-green/5 border border-ios-green/20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-ios bg-ios-green/10 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-ios-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p id="file-name" class="text-sm font-medium text-ios-gray-900 truncate"></p>
+                        <p id="file-size" class="text-xs text-ios-gray-500"></p>
+                    </div>
+                    <button type="button" id="remove-file"
+                        class="text-ios-gray-400 hover:text-ios-red transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="mt-6 flex flex-col-reverse sm:flex-row gap-3">
+                <a href="{% url 'member:member_list' %}"
+                    class="btn-secondary-ios w-full sm:w-auto justify-center btn-press">
                     Annuler
                 </a>
-                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <button type="submit" class="btn-primary-ios w-full sm:flex-1 justify-center btn-press">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
                     Importer
                 </button>
             </div>
         </form>
     </div>
+
+    <!-- Help tip -->
+    <div class="mt-4 p-4 rounded-ios-lg bg-ios-blue/5 border border-ios-blue/10">
+        <div class="flex space-x-3">
+            <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-ios-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm text-ios-blue font-medium">Conseil</p>
+                <p class="text-sm text-ios-gray-600 mt-1">
+                    Assurez-vous que la première ligne de votre fichier contient les en-têtes de colonnes.
+                </p>
+            </div>
+        </div>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('file-upload');
+        const dropZone = document.getElementById('drop-zone');
+        const fileDisplay = document.getElementById('file-display');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const removeBtn = document.getElementById('remove-file');
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showFile(file) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            dropZone.classList.add('hidden');
+            fileDisplay.classList.remove('hidden');
+        }
+
+        function hideFile() {
+            fileInput.value = '';
+            dropZone.classList.remove('hidden');
+            fileDisplay.classList.add('hidden');
+        }
+
+        fileInput.addEventListener('change', function (e) {
+            if (e.target.files.length > 0) {
+                showFile(e.target.files[0]);
+            }
+        });
+
+        removeBtn.addEventListener('click', hideFile);
+
+        // Drag and drop effects
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                dropZone.classList.add('border-ios-blue', 'bg-ios-blue/5');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, function (e) {
+                e.preventDefault();
+                dropZone.classList.remove('border-ios-blue', 'bg-ios-blue/5');
+            });
+        });
+    });
+</script>
 {% endblock %}

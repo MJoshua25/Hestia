@@ -1,0 +1,272 @@
+/**
+ * Hestia Design System - CSS Styles
+ * Following Apple Human Interface Guidelines (https://developer.apple.com/design/)
+ * 
+ * Design Principles:
+ * - Clarity: Content is prioritized with clean typography
+ * - Deference: UI supports content, doesn't compete with it
+ * - Depth: Subtle shadows and layers create hierarchy
+ * - Touch-friendly: All interactive elements ≥44×44px
+ * - Feedback: Transitions and states provide clear feedback
+ */
+
+/* ===================================
+   BASE STYLES
+   =================================== */
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, select, textarea {
+    transition: all 0.2s ease-out;
+}
+
+/* iOS-style focus rings */
+*:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.25);
+}
+
+/* ===================================
+   SCROLLBAR
+   =================================== */
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* ===================================
+   BACKDROP & EFFECTS
+   =================================== */
+
+.backdrop-blur-ios {
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* ===================================
+   BUTTONS
+   =================================== */
+
+.btn-press:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+}
+
+.btn-primary-ios {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 20px;
+    background: #007AFF;
+    color: white;
+    font-weight: 600;
+    font-size: 17px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary-ios:hover {
+    background: #0056CC;
+}
+
+.btn-primary-ios:active {
+    transform: scale(0.97);
+}
+
+.btn-secondary-ios {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 20px;
+    background: #F2F2F7;
+    color: #007AFF;
+    font-weight: 600;
+    font-size: 17px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary-ios:hover {
+    background: #E5E5EA;
+}
+
+.btn-danger-ios {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 20px;
+    background: #FF3B30;
+    color: white;
+    font-weight: 600;
+    font-size: 17px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-danger-ios:hover {
+    background: #D62D23;
+}
+
+/* ===================================
+   INPUTS
+   =================================== */
+
+.input-ios {
+    height: 44px;
+    padding: 0 16px;
+    background: white;
+    border: 1px solid #E5E5EA;
+    border-radius: 12px;
+    font-size: 17px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-ios:focus {
+    border-color: #007AFF;
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.input-ios::placeholder {
+    color: #AEAEB2;
+}
+
+/* ===================================
+   CARDS & CONTAINERS
+   =================================== */
+
+.card-ios {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* ===================================
+   LIST ITEMS (iOS Settings style)
+   =================================== */
+
+.list-item-ios {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 0.5px solid #E5E5EA;
+}
+
+.list-item-ios:last-child {
+    border-bottom: none;
+}
+
+/* ===================================
+   TOAST NOTIFICATIONS
+   =================================== */
+
+.toast-ios {
+    position: fixed;
+    top: env(safe-area-inset-top, 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-weight: 500;
+    font-size: 15px;
+    z-index: 9999;
+    animation: toast-in 0.3s ease-out;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ===================================
+   AVATARS
+   =================================== */
+
+.avatar-ios {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+/* ===================================
+   BADGES
+   =================================== */
+
+.badge-ios {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ===================================
+   SEGMENTED CONTROL
+   =================================== */
+
+.segmented-control {
+    display: inline-flex;
+    background: #F2F2F7;
+    border-radius: 8px;
+    padding: 2px;
+}
+
+.segmented-control button,
+.segmented-control a {
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #636366;
+    background: transparent;
+}
+
+.segmented-control button.active,
+.segmented-control a.active {
+    background: white;
+    color: #1C1C1E;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
