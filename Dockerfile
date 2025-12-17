@@ -30,7 +30,7 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 # Exposer le port
-EXPOSE 8082
+EXPOSE 8083
 
 # Script de démarrage
 CMD ["gunicorn", "--config", "gunicorn-cfg.py", "config.wsgi"]

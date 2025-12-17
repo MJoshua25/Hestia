@@ -17,7 +17,7 @@ worker_class = 'sync'
 timeout = 300
 
 # Bind
-bind = '0.0.0.0:8082'
+bind = '0.0.0.0:8083'
 
 # Reload automatique en dev (désactivé en prod)
 reload = False
