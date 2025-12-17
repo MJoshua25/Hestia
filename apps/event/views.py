@@ -10,6 +10,7 @@ from django.views import View
 from django.http import JsonResponse, HttpResponse
 from django.views.generic import TemplateView
 from django.db.models import Prefetch, Count
+from django.db import transaction
 import json
 from .services import AssignmentService
 from .models import Assignment

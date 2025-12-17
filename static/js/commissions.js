@@ -21,6 +21,7 @@
             showAssignModal: false,
             showManualModal: false,
             showMoveModal: false,
+            showExportDropdown: false,
             
             // Selection for Auto Assign
             selectedMembers: [], 
@@ -102,6 +103,10 @@
             } else {
                 this.selectedMembers = this.availableMembers.map(m => m.id);
             }
+        },
+        
+        toggleExportDropdown() {
+            this.showExportDropdown = !this.showExportDropdown;
         },
         
         async runAutoAssign(force = false) {

@@ -33,7 +33,7 @@
                 </button>
 
                 <div class="relative group">
-                    <button
+                    <button @click="toggleExportDropdown"
                         class="px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-ios font-medium hover:bg-gray-50 transition-colors flex items-center gap-2">
                         📤 Exporter
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,8 +42,9 @@
                         </svg>
                     </button>
                     <!-- Dropdown -->
-                    <div
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-ios shadow-ios-xl border border-gray-100 hidden group-hover:block z-10 p-2">
+                    <div v-if="showExportDropdown"
+                        @click.away="showExportDropdown = false"
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-ios shadow-ios-xl border border-gray-100 z-10 p-2">
                         <a href="{% url 'export_commissions_excel' event.id %}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-ios-blue hover:text-white rounded-ios transition-colors">
                             📊 Format Excel
