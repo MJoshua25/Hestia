@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Modifier{% else %}Ajouter{% endif %} une commission{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+    <!-- Back Navigation -->
+    <a href="{% if object %}{% url 'event_detail' object.event.pk %}{% else %}{% url 'event_detail' event.pk %}{% endif %}"
+        class="inline-flex items-center text-ios-blue font-medium hover:opacity-80 transition-opacity min-h-touch">
+        <svg class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Retour à l'événement
+    </a>
+
+    <!-- Form Card -->
+    <div class="card-ios overflow-hidden">
+        <div class="p-6 sm:p-8 border-b border-ios-gray-100 bg-ios-gray-50/50">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center mr-4">
+                    <svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-ios-gray-900">
+                        {% if object %}Modifier la commission{% else %}Ajouter une commission{% endif %}
+                    </h1>
+                    <p class="text-sm text-ios-gray-500 mt-0.5">
+                        Pour : <strong>{{ event.title|default:object.event.title }}</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="p-6 sm:p-8 space-y-5">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-ios-gray-700 mb-2">
+                    {{ field.label }}
+                    {% if field.field.required %}
+                    <span class="text-ios-red ml-0.5">*</span>
+                    {% endif %}
+                </label>
+
+                {% if field.name == 'description' %}
+                <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="3"
+                    placeholder="Décrivez les responsabilités de cette commission..."
+                    class="input-ios w-full py-3 {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">{{ field.value|default:'' }}</textarea>
+                {% elif field.name == 'name' %}
+                <input type="text" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                    value="{{ field.value|default:'' }}" placeholder="Ex: Décoration, Cuisine, Animation..."
+                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
+                {% elif field.name == 'max_capacity' %}
+                <input type="number" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                    value="{{ field.value|default:'5' }}" min="1" inputmode="numeric"
+                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
+                {% else %}
+                <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
+                    id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}"
+                    class="input-ios w-full {% if field.errors %}border-ios-red focus:border-ios-red focus:ring-ios-red/20{% endif %}">
+                {% endif %}
+
+                {% if field.help_text %}
+                <p class="mt-1.5 text-sm text-ios-gray-500">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                <p class="mt-1.5 text-sm text-ios-red flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    {{ field.errors.0 }}
+                </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div
+                class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-6 border-t border-ios-gray-100">
+                <a href="{% if object %}{% url 'event_detail' object.event.pk %}{% else %}{% url 'event_detail' event.pk %}{% endif %}"
+                    class="btn-secondary-ios w-full sm:w-auto justify-center btn-press">
+                    Annuler
+                </a>
+                <button type="submit" class="btn-primary-ios w-full sm:w-auto justify-center btn-press">
+                    {% if object %}
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Enregistrer
+                    {% else %}
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Ajouter la commission
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

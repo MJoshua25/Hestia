@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # Local apps
     'core',
     'apps.member',
+    'apps.event',
 ]
 
 MIDDLEWARE = [

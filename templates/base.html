@@ -37,18 +37,31 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-14">
                 <div class="flex items-center">
-                    <a href="{% url 'member:member_list' %}" class="flex items-center space-x-2">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-2">
                         <span
                             class="text-xl font-bold bg-gradient-to-r from-ios-blue to-purple-500 bg-clip-text text-transparent">
                             Hestia
                         </span>
                     </a>
                     <div class="hidden sm:ml-8 sm:flex sm:space-x-1">
-                        <a href="{% url 'member:member_list' %}"
-                            class="px-4 py-2 rounded-ios text-sm font-medium text-ios-blue bg-ios-blue/10 hover:bg-ios-blue/15 transition-colors">
-                            Membres
+                        <a href="{% url 'home' %}"
+                            class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                            Accueil
                         </a>
-                        <!-- Add other navigation links here -->
+                        
+                        {% if user.is_authenticated %}
+                            {% if user.member_profile.is_admin or user.member_profile.is_delegate %}
+                            <a href="{% url 'member:member_list' %}"
+                                class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                                Membres
+                            </a>
+                            {% endif %}
+                        {% endif %}
+
+                        <a href="{% url 'event_list' %}"
+                            class="px-3 py-2 rounded-ios text-sm font-medium text-gray-700 hover:text-ios-blue hover:bg-ios-blue/10 transition-colors">
+                            Événements
+                        </a>
                     </div>
                 </div>
 
